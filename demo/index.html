@@ -50,7 +50,7 @@
         // Our tank body
         var tank = this.add.sprite(50, 50, 'tank', 'tank');
         tank.anchor.setTo(0.5, 0.5);
-        phaser.physics.enable(tank, Phaser.Physics.ARCADE);
+        phaser.physics.enable(tank);
         tank.body.maxVelocity.setTo(400, 400);
         tank.body.collideWorldBounds = true;
         tank.currentSpeed = 0;
@@ -79,14 +79,14 @@
 
         var map = phaser.add.tilemap('map');
         map.addTilesetImage('kenney');
+
+        map.setCollision(_.map(_.keys(phaser.cache.getTilemapData('map').data.tilesets[0].tileproperties), function(e) {
+          return parseInt(e);
+        }));
         var layer = map.createLayer('layer1');
         layer.resizeWorld(); // set the world size according to the map
+        this.layer = layer;
 
-        var slopeMap = _.object(_.map(_.pairs(phaser.cache.getTilemapData('map').data.tilesets[0].tileproperties),function(ele){
-          return [(parseInt(ele[0]) + 1).toString(),parseInt(ele[1].slope)];
-        }));
-
-        this.tiles = phaser.physics.p2.convertTilemap(map, layer, slopeMap);
         this.cursors = phaser.input.keyboard.createCursorKeys();
       },
       update: function(){
@@ -109,6 +109,8 @@
 
         if (tank.currentSpeed > 0)
           game.physics.arcade.velocityFromRotation(tank.rotation, tank.currentSpeed, tank.body.velocity);
+
+        phaser.physics.arcade.collide(tank, this.layer);
 
         land.tilePosition.x = -game.camera.x;
         land.tilePosition.y = -game.camera.y;
