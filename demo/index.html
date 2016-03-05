@@ -19,7 +19,9 @@
       },
       preload: function(){
         var phaser = this.phaser;
-        phaser.load.image('logo','img/logo.png');
+        game.phaser.load.crossOrigin = true;
+
+        phaser.load.image('logo','http://i.imgur.com/SSSWhXx.png');
 
         phaser.load.tilemap('map', 'tilemap/map.json', null, Phaser.Tilemap.TILED_JSON);
         phaser.load.image('kenney', 'tilemap/kenney.png');
@@ -33,16 +35,12 @@
         var phaser = this.phaser;
 
         // Prepare how the world works
-        phaser.physics.startSystem(Phaser.Physics.P2JS);
+        phaser.physics.startSystem(Phaser.Physics.ARCADE);
         // phaser.physics.startSystem(Phaser.Physics.ARCADE);
 
         // The land
         this.land = phaser.add.tileSprite(0, 0, phaser.scale.width, phaser.scale.height, 'earth');
         this.land.fixedToCamera = true;
-
-        // The Cat Logo
-        this.logo = phaser.add.sprite(100, 100, 'logo');
-        this.logo.fixedToCamera = true;
 
         // Our tank group
         var tank_group = phaser.add.group();
@@ -56,6 +54,7 @@
         tank.currentSpeed = 0;
         phaser.camera.follow(tank);
 
+        // Our tank group
         tank_group.add(tank);
         this.tank = tank;
 
@@ -72,21 +71,38 @@
         tank.bringToTop();
         turret.bringToTop();
 
-        // add to obj member
+        // expose tank component to the game instance
         this.tank_group = tank_group;
         this.tank = tank;
         this.turret = turret;
 
+        // add the map
         var map = phaser.add.tilemap('map');
         map.addTilesetImage('kenney');
 
-        map.setCollision(_.map(_.keys(phaser.cache.getTilemapData('map').data.tilesets[0].tileproperties), function(e) {
-          return parseInt(e);
-        }));
+        // set collision properties
+        var map_tileproperties = phaser.cache.getTilemapData('map').data.tilesets[0].tileproperties;
+        var map_collision_tiles = _.reduce(map_tileproperties, function(memo, v, k){
+          if(v.slope === undefined) return memo;
+          else return memo.concat(parseInt(k) + 1);
+        },[])
+        map.setCollision(map_collision_tiles);
+
+        // make the collision layer from the map
         var layer = map.createLayer('layer1');
         layer.resizeWorld(); // set the world size according to the map
         this.layer = layer;
 
+        // The Cat Logo
+        var logo = phaser.add.sprite(0, 0, 'logo');
+        logo.x = phaser.scale.width / 2;
+        logo.y = phaser.scale.height / 2;
+        logo.anchor.setTo(0.5, 0.5);
+        logo.fixedToCamera = true;
+        logo.alpha = 0.75;
+        this.logo = logo;
+
+        // enable keyboard control
         this.cursors = phaser.input.keyboard.createCursorKeys();
       },
       update: function(){
@@ -117,10 +133,10 @@
 
         tank_group.setAll('x',tank.x)
         tank_group.setAll('y',tank.y)
-        tank_group.setAll('rotation',tank.rotation)
+        tank_group.setAll('angle',tank.angle)
+        this.logo.angle = tank.angle;
 
         turret.rotation = game.physics.arcade.angleToPointer(turret);
-
       }
     };
 
