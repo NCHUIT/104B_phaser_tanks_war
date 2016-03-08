@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Phaser demo</title>
+</head>
+<body style="margin:0;">
+  <div id="game"></div>
+  <script src="//code.jquery.com/jquery-1.12.0.min.js" charset="utf-8"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/phaser/2.4.6/phaser.min.js" charset="utf-8"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js" charset="utf-8"></script>
+  <script src="lib/phaser_nchuit_helper.js" charset="utf-8"></script>
+  <script type="text/javascript">
+
+    var game = {
+      new: function(witdh, height, canvas_selector){
+        this.phaser = new Phaser.Game(witdh, height, Phaser.AUTO, canvas_selector, this)
+      },
+      preload: function(){
+        var phaser = this.phaser;
+        phaser.load.crossOrigin = true;
+
+        phaser.load.image('logo','http://i.imgur.com/SSSWhXx.png');
+
+        phaser.load.tilemap('map', 'tilemap/map.json', null, Phaser.Tilemap.TILED_JSON);
+        phaser.load.image('kenney', 'tilemap/kenney.png');
+
+        phaser.load.atlas('tank', 'img/tanks.png', 'assets/tanks.json');
+        phaser.load.image('earth', 'img/scorched_earth.png');
+      },
+      create: function(){
+        var phaser = this.phaser;
+
+        // The Logo
+        var logo = phaser.add.sprite(0, 0, 'logo');
+
+        // Prepare how the world works
+        phaser.physics.startSystem(Phaser.Physics.ARCADE);
+
+        // The land
+        var land = phaser.add.tileSprite(0, 0, phaser.scale.width, phaser.scale.height, 'earth');
+        land.fixedToCamera = true;
+
+        // Our tank body
+        var tank = this.add.sprite(50, 50, 'tank', 'tank');
+        tank.anchor.setTo(0.5, 0.5);
+        phaser.physics.enable(tank);
+        tank.body.collideWorldBounds = true;
+        phaser.camera.follow(tank);
+
+        // The turret on our tank
+        var turret = phaser.add.sprite(0, 0, 'tank', 'turret')
+        turret.anchor.setTo(0.3, 0.5);
+
+        //  A shadow below our tank
+        var shadow = this.add.sprite(0, 0, 'tank', 'shadow');
+        shadow.anchor.setTo(0.5, 0.5);
+
+        // Our tank group
+        var tank_group = phaser.add.group();
+        tank_group.add(tank);
+        tank_group.add(turret)
+        tank_group.add(shadow)
+
+        // fix z layer of our tank
+        tank.bringToTop();
+        turret.bringToTop();
+
+        // add the map
+        var map = phaser.add.tilemap('map');
+        map.addTilesetImage('kenney');
+
+        // set collision properties
+        map.setCollision(PhaserHelper.getCollisionIndexes(phaser, 'map'));
+
+        // make the collision layer from the map
+        var layer = map.createLayer('layer1');
+        // set the world size according to the map
+        layer.resizeWorld();
+
+        logo.x = phaser.scale.width / 2;
+        logo.y = phaser.scale.height / 2;
+        logo.anchor.setTo(0.5, 0.5);
+        logo.fixedToCamera = true;
+        logo.alpha = 0.75;
+        logo.bringToTop();
+
+        // expose tank component to the game instance
+        this.land = land;
+        this.tank_group = tank_group;
+        this.tank = tank;
+        this.turret = turret;
+        this.layer = layer;
+        this.logo = logo;
+
+        // enable keyboard control
+        this.cursors = phaser.input.keyboard.createCursorKeys();
+
+        // the init speed of tank
+        this.tank.currentSpeed = 0;
+      },
+      update: function(){
+        // get the variables
+        var phaser = this.phaser;
+        var cursors = this.cursors;
+        var tank = this.tank;
+        var tank_group = this.tank_group;
+        var turret = this.turret;
+        var land = this.land;
+
+        // tank control and inertia
+        if (cursors.left.isDown)
+          tank.angle -= 4;
+        if (cursors.right.isDown)
+          tank.angle += 4;
+        if (cursors.up.isDown)
+          tank.currentSpeed = 300;
+        else
+          if (tank.currentSpeed > 0)
+              tank.currentSpeed -= 4;
+
+        // convert to x,y velocity
+        phaser.physics.arcade.velocityFromRotation(tank.rotation, tank.currentSpeed, tank.body.velocity);
+
+        // collide with the map
+        phaser.physics.arcade.collide(tank, this.layer);
+
+        // union the tank's component
+        tank_group.setAll('x',tank.x)
+        tank_group.setAll('y',tank.y)
+        tank_group.setAll('angle',tank.angle)
+
+        // make turret point the mouse
+        turret.rotation = phaser.physics.arcade.angleToPointer(turret);
+
+        // make land look like scrolling
+        land.tilePosition.x = -phaser.camera.x;
+        land.tilePosition.y = -phaser.camera.y;
+
+        // a stupit stuff
+        this.logo.angle = tank.angle;
+      }
+    };
+
+    jQuery(document).ready(function($) {
+      game.new($(document).width(), $(document).height(), 'game');
+    });
+
+  </script>
+</body>
+</html>
