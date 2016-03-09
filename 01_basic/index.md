@@ -377,12 +377,12 @@ shadow.anchor.setTo(0.5, 0.5);
 ```js
 var tank_group = phaser.add.group();
 tank_group.add(tank);
-tank_group.add(turret)
-tank_group.add(shadow)
+tank_group.add(turret);
+tank_group.add(shadow);
 ```
 
 %%%%%%%%%%%%%%%
-!SLIDE x=7200 y=2800 z=10000 rotate-x=180
+!SLIDE x=7200 y=2800 z=11000 rotate-x=180
 
 ## 處理圖層前後問題
 
@@ -756,13 +756,22 @@ this.logo.angle = tank.angle;
 %%%%%%%%%%%%%%%
 !SLIDE x=0 y=4900 picture
 
-### 呼！終於有個基本樣子了
+## 呼！終於有個基本樣子了
 
 #### 今天先到這吧，希望沒有嚇到大家
 
 #### 如果有問題都可以問喔！
 
+%%%%%%%%%%%%%%%
+!SLIDE x=1200 y=4900 picture
+
+### 來加入我們吧
+
 ![hey hey](https://media.giphy.com/media/HreknDhcZmGoE/giphy.gif)
+
+#### [fb.me/it.nchu](http://fb.me/it.nchu)
+
+#### [nchuit.cc](http://nchuit.cc)
 
 %% The End
 %%%%%%%%%%%%%%%
