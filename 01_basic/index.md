@@ -322,7 +322,7 @@ var tank = this.add.sprite(50, 50, 'tank', 'tank');
 #### 還記得當初讀取進來的時候他是 `atlas` 嗎？
 
 %%%%%%%%%%%%%%%
-!SLIDE x=7200 y=2800 z=4000 rotate-x=180
+!SLIDE x=7200 y=2800 z=5000 rotate-x=180
 
 ## 設定旋轉的基準點
 
@@ -331,7 +331,7 @@ tank.anchor.setTo(0.5, 0.5);
 ```
 
 %%%%%%%%%%%%%%%
-!SLIDE x=7200 y=2800 z=5000 rotate-x=180
+!SLIDE x=7200 y=2800 z=7000 rotate-x=180
 
 ## 設定物理運作，基本上就是碰撞啦
 
@@ -341,7 +341,7 @@ tank.body.collideWorldBounds = true;
 ```
 
 %%%%%%%%%%%%%%%
-!SLIDE x=7200 y=2800 z=6000 rotate-x=180
+!SLIDE x=7200 y=2800 z=9000 rotate-x=180
 
 ## 這是我們的主角，當然要讓視角對準她
 
@@ -350,7 +350,7 @@ phaser.camera.follow(tank);
 ```
 
 %%%%%%%%%%%%%%%
-!SLIDE x=7200 y=2800 z=7000 rotate-x=180
+!SLIDE x=7200 y=2800 z=11000 rotate-x=180
 
 ## 上砲台！
 
@@ -360,7 +360,7 @@ turret.anchor.setTo(0.3, 0.5);
 ```
 
 %%%%%%%%%%%%%%%
-!SLIDE x=7200 y=2800 z=8000 rotate-x=180
+!SLIDE x=7200 y=2800 z=13000 rotate-x=180
 
 ## 不是很重要的陰影
 
@@ -370,7 +370,7 @@ shadow.anchor.setTo(0.5, 0.5);
 ```
 
 %%%%%%%%%%%%%%%
-!SLIDE x=7200 y=2800 z=9000 rotate-x=180
+!SLIDE x=7200 y=2800 z=15000 rotate-x=180
 
 ### 我們需要一個群組，可以一次控制這三樣東西的位置
 
@@ -382,7 +382,7 @@ tank_group.add(shadow);
 ```
 
 %%%%%%%%%%%%%%%
-!SLIDE x=7200 y=2800 z=11000 rotate-x=180
+!SLIDE x=7200 y=2800 z=17000 rotate-x=180
 
 ## 處理圖層前後問題
 
@@ -420,7 +420,7 @@ map.addTilesetImage('kenney');
 ### 讓我來解釋一下 `kenney` 這個東西...
 
 %%%%%%%%%%%%%%%
-!SLIDE x=9600 y=2800 z=4000 rotate-x=180
+!SLIDE x=9600 y=2800 z=5000 rotate-x=180
 
 ### 設定碰撞
 
@@ -431,7 +431,7 @@ map.setCollision(PhaserHelper.getCollisionIndexes(phaser, 'map'));
 #### 那個 `PhaserHelper.getCollisionIndexes` 是我幫你們包起來的
 
 %%%%%%%%%%%%%%%
-!SLIDE x=9600 y=2800 z=5000 rotate-x=180
+!SLIDE x=9600 y=2800 z=7000 rotate-x=180
 
 ## 其實一張地圖可以有很多層
 
@@ -440,7 +440,7 @@ var layer = map.createLayer('layer1');
 ```
 
 %%%%%%%%%%%%%%%
-!SLIDE x=9600 y=2800 z=6000 rotate-x=180
+!SLIDE x=9600 y=2800 z=9000 rotate-x=180
 
 ## 把世界設定成跟這張地圖一樣大
 
@@ -526,7 +526,7 @@ this.logo = logo;
 ```
 
 %%%%%%%%%%%%%%%
-!SLIDE x=2400 y=3500 z=4000 rotate-x=180
+!SLIDE x=2400 y=3500 z=5000 rotate-x=180
 
 ## 同時，我們還要把鍵盤的上下左右取出來
 
@@ -535,7 +535,7 @@ this.cursors = phaser.input.keyboard.createCursorKeys();
 ```
 
 %%%%%%%%%%%%%%%
-!SLIDE x=2400 y=3500 z=5000 rotate-x=180
+!SLIDE x=2400 y=3500 z=7000 rotate-x=180
 
 ## 坦克的慣性，我們得先初始化一個初始速度
 
@@ -596,7 +596,7 @@ if (cursors.left.isDown)
 ```
 
 %%%%%%%%%%%%%%%
-!SLIDE x=1200 y=4200 z=4000 rotate-x=180
+!SLIDE x=1200 y=4200 z=5000 rotate-x=180
 
 ## 『如果鍵盤右鍵是被按下的，坦克往右轉』
 
@@ -606,7 +606,7 @@ if (cursors.right.isDown)
 ```
 
 %%%%%%%%%%%%%%%
-!SLIDE x=1200 y=4200 z=5000 rotate-x=180
+!SLIDE x=1200 y=4200 z=7000 rotate-x=180
 
 ## 基本的條件判斷會了，來
 
@@ -615,7 +615,7 @@ if (cursors.right.isDown)
 #### ，如果沒有，坦克要緩下來（降低速度）』
 
 %%%%%%%%%%%%%%%
-!SLIDE x=1200 y=4200 z=6000 rotate-x=180
+!SLIDE x=1200 y=4200 z=9000 rotate-x=180
 
 ### 2. 坦克的慣性，這樣會有啥問題？
 
@@ -629,7 +629,7 @@ else
 #### 速度會變成負的啊啊啊
 
 %%%%%%%%%%%%%%%
-!SLIDE x=1200 y=4200 z=7000 rotate-x=180
+!SLIDE x=1200 y=4200 z=11000 rotate-x=180
 
 ### 把速度限制在 >= 0
 
@@ -658,7 +658,7 @@ game.physics.arcade.velocityFromRotation(tank.rotation, tank.currentSpeed, tank.
 ```
 
 %%%%%%%%%%%%%%%
-!SLIDE x=2400 y=4200 z=4000 rotate-x=180
+!SLIDE x=2400 y=4200 z=5000 rotate-x=180
 
 ### 痾，他不是自己已經有 `tank.body.velocity`
 
@@ -669,7 +669,7 @@ console.log(tank.body.velocity);
 #### 印出來看看吧！
 
 %%%%%%%%%%%%%%%
-!SLIDE x=2400 y=4200 z=5000 rotate-x=180
+!SLIDE x=2400 y=4200 z=7000 rotate-x=180
 
 ## 我們利用他的工具來幫我們設定 `x` 方向以及 `y` 方向的速度啊啊
 
