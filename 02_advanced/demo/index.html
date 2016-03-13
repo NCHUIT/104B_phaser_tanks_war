@@ -27,6 +27,7 @@
 
         phaser.load.atlas('tank', 'img/tanks.png', 'assets/tanks.json');
         phaser.load.image('earth', 'img/scorched_earth.png');
+        phaser.load.image('bullet', 'img/')
       },
       create: function(){
         var phaser = this.phaser;
@@ -118,11 +119,6 @@
         else
           if (tank.currentSpeed > 0)
               tank.currentSpeed -= 4;
-        if (cursors.down.isDown)
-          tank.currentSpeed = -150;
-        else
-          if (tank.currentSpeed < 0)
-            tank.currentSpeed += 4;
 
         // convert to x,y velocity
         phaser.physics.arcade.velocityFromRotation(tank.rotation, tank.currentSpeed, tank.body.velocity);
@@ -144,6 +140,12 @@
 
         // a stupit stuff
         // this.logo.angle = tank.angle;
+      },
+      fire : function(){
+
+
+
+
       }
     };
 
