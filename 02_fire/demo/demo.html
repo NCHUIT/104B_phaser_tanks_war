@@ -131,15 +131,20 @@
             var land = this.land;
 
             // tank control and inertia
-            if (cursors.left.isDown)
+            if (game.input.keyboard.isDown(Phaser.Keyboard.A))
               tank.angle -= 4;
-            if (cursors.right.isDown)
+            if (game.input.keyboard.isDown(Phaser.Keyboard.D))
               tank.angle += 4;
-            if (cursors.up.isDown)
+            if (game.input.keyboard.isDown(Phaser.Keyboard.W))
               tank.currentSpeed = 300;
             else
               if (tank.currentSpeed > 0)
                   tank.currentSpeed -= 4;
+            if (game.input.keyboard.isDown(Phaser.Keyboard.S))
+               tank.currentSpeed = -200
+            else
+              if (tank.currentSpeed < 0)
+                 tank.currentSpeed += 4 ;
 
             // convert to x,y velocity
             phaser.physics.arcade.velocityFromRotation(tank.rotation, tank.currentSpeed, tank.body.velocity);
