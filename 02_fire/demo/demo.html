@@ -42,6 +42,7 @@
             bullet.anchor.setTo(0.5, 0.5);
             bullet.currentSpeed =500;
             bullet.rotation = this.turret.rotation;
+          //  bullet.scale.setTo(0.25,0.25)
             phaser.physics.enable(bullet);
             phaser.physics.arcade.velocityFromRotation(bullet.rotation, bullet.currentSpeed, bullet.body.velocity);
             bullet.outOfBoundsKill = true
@@ -120,6 +121,7 @@
             game.input.onDown.add(game.removeLogo, this);
             this.bullets =[];
             this.firetime = 0;
+            phaser.size.sen();
         },
         update: function(){
             // get the variables
