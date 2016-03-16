@@ -46,7 +46,7 @@
             phaser.physics.arcade.velocityFromRotation(bullet.rotation, bullet.currentSpeed, bullet.body.velocity);
             bullet.outOfBoundsKill = true
             this.bullets.push(bullet);
-        },   
+        }, 
         create: function(){
             var phaser = this.phaser;
 
@@ -177,7 +177,6 @@
             this.firetime-=1;
             //判斷砲彈和牆壁有無碰撞
             phaser.physics.arcade.collide(bullets, this.layer, this.bulletHits);
-
         },
         bulletHits: function (bullet) {
             bullet.kill();
