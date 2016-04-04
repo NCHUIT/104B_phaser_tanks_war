@@ -33,22 +33,24 @@
       this.tank.anchor.set(0.5);
       this.turret.anchor.set(0.3, 0.5);
 
+      var tank_group = game.add.group();
+      tank_group.add(this.tank);
+      tank_group.add(this.turret);
+      tank_group.add(this.shadow);
+
+      this.tank.bringToTop();
+      this.turret.bringToTop();
+      
       this.tank.name = index.toString();
       game.physics.enable(this.tank, Phaser.Physics.ARCADE);
       this.tank.body.immovable = false;
       this.tank.body.collideWorldBounds = true;
       this.tank.body.bounce.setTo(1, 1);
 
+      this.tank.angle = game.rnd.angle();
+
       game.physics.arcade.velocityFromRotation(this.tank.rotation, 100, this.tank.body.velocity);
 
-      var tank_group = game.add.group();
-      tank_group.add(this.tank);
-      tank_group.add(this.turret);
-      tank_group.add(this.shadow);
-
-      this.turret.bringToTop();
-      this.tank.bringToTop();
-      
     };
 
     // EnemyTank.prototype.damage = function() {
@@ -71,24 +73,17 @@
 
     EnemyTank.prototype.update = function() {
 
-      // this.shadow.x = this.tank.x;
-      // this.shadow.y = this.tank.y;
-      // this.shadow.rotation = this.tank.rotation;
-
-      // this.turret.x = this.tank.x;
-      // this.turret.y = this.tank.y;
-      // this.turret.rotation = this.game.physics.arcade.angleBetween(this.tank, this.player);
       game.physics.arcade.collide(tank, this.layer);
 
-      if (this.game.physics.arcade.distanceBetween(this.tank, this.player) < 300)
-        {
-          if (this.game.time.now > this.nextFire && this.bullets.countDead() > 0)
-          {
+      // if (this.game.physics.arcade.distanceBetween(this.tank, this.player) < 300)
+      //   {
+      //     if (this.game.time.now > this.nextFire && this.bullets.countDead() > 0)
+      //     {
            
-            this.enemyFire
+      //       this.enemyFire
 
-          }
-        }
+      //     }
+      //   }
     }; 
 
 
