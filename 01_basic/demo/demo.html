@@ -12,6 +12,8 @@
   <script src="lib/phaser_nchuit_helper.js" charset="utf-8"></script>
   <script type="text/javascript">
 
+   
+
     var game = {
       new: function(witdh, height, canvas_selector){
         this.phaser = new Phaser.Game(witdh, height, Phaser.AUTO, canvas_selector, this)
@@ -27,6 +29,7 @@
 
         phaser.load.atlas('tank', 'img/tanks.png', 'assets/tanks.json');
         phaser.load.image('earth', 'img/scorched_earth.png');
+        phaser.load.atlas('emeny', 'img/')
       },
       create: function(){
         var phaser = this.phaser;

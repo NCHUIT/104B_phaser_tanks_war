@@ -21,10 +21,9 @@
             phaser.load.crossOrigin = true;
 
             phaser.load.image('logo','http://i.imgur.com/SSSWhXx.png');
-            game.load.image('bullet', 'img/bullet.png');
+            phaser.load.image('bullet', 'img/bullet.png');
             phaser.load.tilemap('map', 'tilemap/map.json', null, Phaser.Tilemap.TILED_JSON);
             phaser.load.image('kenney', 'tilemap/kenney.png');
-
             phaser.load.atlas('tank', 'img/tanks.png', 'assets/tanks.json');
             phaser.load.image('earth', 'img/scorched_earth.png');
          },
@@ -32,7 +31,7 @@
 
             game.input.onUp.remove(this.removeLogo, this);
             this.logo.kill();
-        },
+         },
          fire :  function  () {
             var phaser = this.phaser;
             var turret = this.turret;
@@ -156,8 +155,8 @@
             }
         },
         update: function(){
-            // get the variables
             var c=0;
+            game.input.onDown.add(game.removeLogo, this);
             var phaser = this.phaser;
             var cursors = this.cursors;
             var tank = this.tank;
@@ -166,16 +165,16 @@
             var land = this.land;
 
             // tank control and inertia
-            if (game.input.keyboard.isDown(Phaser.Keyboard.A))
+            if (phaser.input.keyboard.isDown(Phaser.Keyboard.A))
               tank.angle -= 4;
-            if (game.input.keyboard.isDown(Phaser.Keyboard.D))
+            if (phaser.input.keyboard.isDown(Phaser.Keyboard.D))
               tank.angle += 4;
-            if (game.input.keyboard.isDown(Phaser.Keyboard.W))
+            if (phaser.input.keyboard.isDown(Phaser.Keyboard.W))
               tank.currentSpeed = 300;
             else
               if (tank.currentSpeed > 0)
                   tank.currentSpeed -= 4;
-            if (game.input.keyboard.isDown(Phaser.Keyboard.S))
+            if (phaser.input.keyboard.isDown(Phaser.Keyboard.S))
                tank.currentSpeed = -200
             else
               if (tank.currentSpeed < 0)
@@ -245,10 +244,9 @@
             }
             c-=1;
         },
-        
         bulletHits: function (bullet) {
             bullet.kill();
-        }
+        },
 
      };
 
