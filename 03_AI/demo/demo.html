@@ -159,6 +159,7 @@
                     alive : true
                 })
             }
+            // explosion
              this.explosions = game.add.group();
             for (var i = 0; i < 10; i++)
             {
@@ -166,14 +167,15 @@
                 this.explosionAnimation.anchor.setTo(0.5, 0.5);
                 this.explosionAnimation.animations.add('kaboom');
             }
+            // enemy tank bullet
             this.ETbullets = [];
             this.firstfire = true;
             this.tank.health = 10;
             this.tank.alive = true;
         },
         update: function(){
-            var c=0;
-            game.input.onDown.add(game.removeLogo, this);
+            // tank angle change rate 
+            var tacr=0;
             var phaser = this.phaser;
             var cursors = this.cursors;
             var tank = this.tank;
@@ -239,18 +241,18 @@
                 phaser.physics.arcade.collide(enemies[i].tank, this.tank);
                 var collided = phaser.physics.arcade.collide(enemies[i].tank, this.layer);
                 // collide with layer
-                if(collided && c<=0){
+                if(collided && tacr<=0){
                     enemies[i].tank.angle += 4;
-                    c=5;
+                    tacr=5;
                 }
                 // collide with world bounds
-                if (this.enemies[i].tank.x >= phaser.world.width-32 || this.enemies[i].tank.x <= 32 && c<=0){
+                if (this.enemies[i].tank.x >= phaser.world.width-32 || this.enemies[i].tank.x <= 32 && tacr<=0){
                     this.enemies[i].tank.angle += 4;
-                    c=15;
+                    tacr=15;
                 }
-                if (enemies[i].tank.y >= phaser.world.height-32 || enemies[i].tank.y <= 32 && c<=0){
+                if (enemies[i].tank.y >= phaser.world.height-32 || enemies[i].tank.y <= 32 && tacr<=0){
                     enemies[i].tank.angle += 4;
-                    c=15;
+                    tacr=15;
                 }
                 if(Math.floor((Math.random() * 10) + 1) == 1)
                     game.physics.arcade.velocityFromRotation(enemies[i].tank.angle, 0, enemies[i].tank.body.velocity);
@@ -273,15 +275,15 @@
                             explosionAnimation.play('kaboom', 30, false, true);
                         }
                     });
-                    for(j = 0;j < this.enemiesTotal ; j++)
+                    for(j = i+1;j < this.enemiesTotal ; j++)
                     {
                         
-                        if(i!=j && this.enemies[j].alive)
+                        if(this.enemies[j].alive)
                         {
                             if (phaser.physics.arcade.collide(this.enemies[i].tank,this.enemies[j].tank))
                                 {
                                     this.enemies[i].tank.angle += 4;
-                                    c=10;
+                                    tacr=10;
                                 }
                         }
                     }
@@ -320,7 +322,7 @@
                     turret.kill();
                 }
             });
-            c-=1;
+            tacr-=1;
         },
         bulletHits: function (bullet) {
             bullet.kill();
