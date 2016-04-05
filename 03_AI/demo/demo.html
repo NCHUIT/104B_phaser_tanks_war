@@ -119,10 +119,45 @@
             game.input.onUp.add(this.removeLogo, this);
             this.bullets =[];
             this.firetime = 0;
-            phaser.size.sen();
+            this.enemies = [];
+            this.enemiesTotal = 20;
+            this.enemiesAlive = 20;
+            for (var i = 0; i < this.enemiesTotal; i++)
+            {
+
+                var x = phaser.world.randomX;
+                var y = phaser.world.randomY;
+                var shadow = this.add.sprite(x, y, 'tank', 'shadow');
+                var tank = this.add.sprite(x, y, 'tank', 'tank');
+                var turret = this.add.sprite(x, y, 'tank','turret');
+                var tank_group = phaser.add.group();
+                tank_group.add(tank);
+                tank_group.add(turret);
+                tank_group.add(shadow);
+                tank.bringToTop();
+                turret.bringToTop();
+                shadow.anchor.setTo(0.5);
+                tank.anchor.setTo(0.5);
+                turret.anchor.setTo(0.3, 0.5);
+                game.physics.enable(tank, Phaser.Physics.ARCADE);
+                tank.body.collideWorldBounds = true ;
+                tank.body.immovable = false ;
+                tank.body.bounce.setTo(1,1);
+                tank.angle = phaser.rnd.angle();
+                this.enemies.push({
+                    tank: tank,
+                    turret: turret,
+                    tank_group: tank_group,
+                    health : 3,
+                    fireRate : 1000,
+                    nextFire : 0,
+                    alive : true
+                })
+            }
         },
         update: function(){
             // get the variables
+            var c=0;
             var phaser = this.phaser;
             var cursors = this.cursors;
             var tank = this.tank;
@@ -153,9 +188,9 @@
             phaser.physics.arcade.collide(tank, this.layer);
 
             // union the tank's component
-            tank_group.setAll('x',tank.x)
-            tank_group.setAll('y',tank.y)
-            tank_group.setAll('angle',tank.angle)
+            tank_group.setAll('x',tank.x);
+            tank_group.setAll('y',tank.y);
+            tank_group.setAll('angle',tank.angle);
 
             // make turret point the mouse
              turret.rotation = phaser.physics.arcade.angleToPointer(turret);
@@ -177,10 +212,44 @@
             this.firetime-=1;
             //判斷砲彈和牆壁有無碰撞
             phaser.physics.arcade.collide(bullets, this.layer, this.bulletHits);
+            for(i = 0 ; i < this.enemiesTotal ; i++)
+            {
+                
+                game.physics.arcade.velocityFromRotation(this.enemies[i].tank.angle, 100, this.enemies[i].tank.body.velocity);
+                phaser.physics.arcade.collide(this.enemies[i].tank, this.tank);
+                var collided = phaser.physics.arcade.collide(this.enemies[i].tank, this.layer);
+                var wcollided = phaser.physics.arcade.collide(this.enemies[i].tank, phaser.world.bounds);
+                if(collided && c<=0){
+                    this.enemies[i].tank.angle += 4;
+                    c=5;
+                }
+                if (this.enemies[i].tank.x >= phaser.world.width-32 || this.enemies[i].tank.x <= 32 && c<=0){
+                    this.enemies[i].tank.angle += 4;
+                    c=15;
+                }
+                if (this.enemies[i].tank.y >= phaser.world.height-32 || this.enemies[i].tank.y <= 32 && c<=0){
+                    this.enemies[i].tank.angle += 4;
+                    c=15;
+                }
+                if(Math.floor((Math.random() * 10) + 1) == 1)
+                    game.physics.arcade.velocityFromRotation(this.enemies[i].tank.angle, 0, this.enemies[i].tank.body.velocity);
+                for(j = 0;j < this.enemiesTotal ; j++)
+                {
+                    if(i!=j)
+                        phaser.physics.arcade.collide(this.enemies[i].tank,this.enemies[j].tank);
+                }
+                this.enemies[i].tank_group.setAll('x',this.enemies[i].tank.x);
+                this.enemies[i].tank_group.setAll('y',this.enemies[i].tank.y);
+                this.enemies[i].tank_group.setAll('angle',this.enemies[i].tank.angle);
+                this.enemies[i].turret.rotation = this.game.physics.arcade.angleBetween(this.enemies[i].tank, this.tank);
+            }
+            c-=1;
         },
+        
         bulletHits: function (bullet) {
             bullet.kill();
         }
+
      };
 
     jQuery(document).ready(function($) {
