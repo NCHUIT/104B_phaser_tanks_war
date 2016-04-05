@@ -219,10 +219,12 @@
                 phaser.physics.arcade.collide(this.enemies[i].tank, this.tank);
                 var collided = phaser.physics.arcade.collide(this.enemies[i].tank, this.layer);
                 var wcollided = phaser.physics.arcade.collide(this.enemies[i].tank, phaser.world.bounds);
+                // collide with layer
                 if(collided && c<=0){
                     this.enemies[i].tank.angle += 4;
                     c=5;
                 }
+                // collide with world bounds
                 if (this.enemies[i].tank.x >= phaser.world.width-32 || this.enemies[i].tank.x <= 32 && c<=0){
                     this.enemies[i].tank.angle += 4;
                     c=15;
