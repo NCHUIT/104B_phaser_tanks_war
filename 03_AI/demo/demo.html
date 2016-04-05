@@ -26,6 +26,7 @@
             phaser.load.image('kenney', 'tilemap/kenney.png');
             phaser.load.atlas('tank', 'img/tanks.png', 'assets/tanks.json');
             phaser.load.image('earth', 'img/scorched_earth.png');
+            phaser.load.atlas('enemy', 'img/enemy-tanks.png', 'assets/tanks.json')
          },
          removeLogo : function () {
 
@@ -126,9 +127,9 @@
 
                 var x = phaser.world.randomX;
                 var y = phaser.world.randomY;
-                var shadow = this.add.sprite(x, y, 'tank', 'shadow');
-                var tank = this.add.sprite(x, y, 'tank', 'tank');
-                var turret = this.add.sprite(x, y, 'tank','turret');
+                var shadow = this.add.sprite(x, y, 'enemy', 'shadow');
+                var tank = this.add.sprite(x, y, 'enemy', 'tank');
+                var turret = this.add.sprite(x, y, 'enemy','turret');
                 var tank_group = phaser.add.group();
                 tank_group.add(tank);
                 tank_group.add(turret);
