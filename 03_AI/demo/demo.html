@@ -27,6 +27,8 @@
             phaser.load.atlas('tank', 'img/tanks.png', 'assets/tanks.json');
             phaser.load.image('earth', 'img/scorched_earth.png');
             phaser.load.spritesheet('kaboom', 'img/explosion.png', 64, 64, 23);
+            phaser.load.atlas('enemy', 'img/enemy-tanks.png', 'assets/tanks.json')
+
          },
          removeLogo : function () {
 
@@ -128,9 +130,9 @@
 
                 var x = phaser.world.randomX;
                 var y = phaser.world.randomY;
-                var shadow = this.add.sprite(x, y, 'tank', 'shadow');
-                var tank = this.add.sprite(x, y, 'tank', 'tank');
-                var turret = this.add.sprite(x, y, 'tank','turret');
+                var shadow = this.add.sprite(x, y, 'enemy', 'shadow');
+                var tank = this.add.sprite(x, y, 'enemy', 'tank');
+                var turret = this.add.sprite(x, y, 'enemy','turret');
                 var tank_group = phaser.add.group();
                 tank_group.add(tank);
                 tank_group.add(turret);
@@ -236,13 +238,14 @@
                 game.physics.arcade.velocityFromRotation(enemies[i].tank.angle, 100, enemies[i].tank.body.velocity);
                 phaser.physics.arcade.collide(enemies[i].tank, this.tank);
                 var collided = phaser.physics.arcade.collide(enemies[i].tank, this.layer);
-                var wcollided = phaser.physics.arcade.collide(enemies[i].tank, phaser.world.bounds);
+                // collide with layer
                 if(collided && c<=0){
                     enemies[i].tank.angle += 4;
                     c=5;
                 }
-                if (enemies[i].tank.x >= phaser.world.width-32 || enemies[i].tank.x <= 32 && c<=0){
-                    enemies[i].tank.angle += 4;
+                // collide with world bounds
+                if (this.enemies[i].tank.x >= phaser.world.width-32 || this.enemies[i].tank.x <= 32 && c<=0){
+                    this.enemies[i].tank.angle += 4;
                     c=15;
                 }
                 if (enemies[i].tank.y >= phaser.world.height-32 || enemies[i].tank.y <= 32 && c<=0){
@@ -306,6 +309,7 @@
                 }
             }
             var ETbullets = this.ETbullets;
+            phaser.physics.arcade.collide(ETbullets, this.layer, this.bulletHits);
             phaser.physics.arcade.overlap(ETbullets, tank, function  (ETbullet , tank) {
                 tank.health -= 1;
                 ETbullet.kill();
