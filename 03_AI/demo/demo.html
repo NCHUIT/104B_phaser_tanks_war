@@ -147,7 +147,6 @@
                 tank.body.immovable = false ;
                 tank.body.bounce.setTo(1,1);
                 tank.angle = phaser.rnd.angle();
-                this.nextFire = 0;
                 this.fireRate = 1000;
                 this.enemies.push({
                     tank: tank,
@@ -155,6 +154,7 @@
                     tank_group: tank_group,
                     hasbullet : false,
                     shadow:shadow,
+                    nextFire: 0,
                     health : 3,
                     alive : true
                 })
@@ -171,6 +171,7 @@
             this.ETbullets = [];
             this.firstfire = true;
             this.tank.health = 10;
+            this.tank.healthTotal = 10;
             this.tank.alive = true;
         },
         update: function(){
@@ -254,8 +255,6 @@
                     enemies[i].tank.angle += 4;
                     tacr=15;
                 }
-                if(Math.floor((Math.random() * 10) + 1) == 1)
-                    game.physics.arcade.velocityFromRotation(enemies[i].tank.angle, 0, enemies[i].tank.body.velocity);
                 if(enemies[i].alive)
                 {
                     phaser.physics.arcade.overlap(bullets, enemies[i].tank, function  (bullet , tank) {
@@ -294,7 +293,7 @@
                 this.enemies[i].turret.rotation = this.game.physics.arcade.angleBetween(this.enemies[i].tank, this.tank);
                  if (phaser.physics.arcade.distanceBetween(enemies[i].tank, tank) < 300)
                 {
-                    if (phaser.time.now > this.nextFire && enemies[i].alive)
+                    if (phaser.time.now > enemies[i].nextFire && enemies[i].alive)
                     {
                         var ETbullet = phaser.add.sprite(enemies[i].turret.x, enemies[i].turret.y, 'bullet');
                         var ETbullets = this.ETbullets;
@@ -306,7 +305,7 @@
                         phaser.physics.arcade.velocityFromRotation(ETbullet.rotation, ETbullet.currentSpeed, ETbullet.body.velocity);
                         ETbullet.outOfBoundsKill = true;
                         ETbullets.push(ETbullet);
-                        this.nextFire = phaser.time.now + this.fireRate;
+                        enemies[i].nextFire = phaser.time.now + this.fireRate;
                     }
                 }
             }
@@ -327,6 +326,13 @@
         bulletHits: function (bullet) {
             bullet.kill();
         },
+        render: function () {
+
+            var phaser = this.phaser
+
+            phaser.debug.text('Health: ' + this.tank.health + ' / ' + this.tank.healthTotal, 32, 32);
+
+        }
      };
 
     jQuery(document).ready(function($) {
