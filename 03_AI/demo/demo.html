@@ -319,6 +319,10 @@
                     shadow.kill();
                     tank.kill();
                     turret.kill();
+                    explosionAnimation = explosions.getFirstExists(false);
+                    explosionAnimation.reset(tank.x, tank.y);
+                    explosionAnimation.play('kaboom', 30, false, true);
+
                 }
             });
             tacr-=1;
