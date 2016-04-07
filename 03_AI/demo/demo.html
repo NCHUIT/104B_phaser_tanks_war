@@ -169,10 +169,11 @@
             }
             // enemy tank bullet
             this.ETbullets = [];
-            this.firstfire = true;
             this.tank.health = 10;
             this.tank.healthTotal = 10;
             this.tank.alive = true;
+            this.shot =0;
+            this.cd =0;
         },
         update: function(){
             // tank angle change rate 
@@ -223,7 +224,6 @@
                 {
                     //  Boom!
                     this.fire();
-                        this.firstfire = false;
                     //設置砲彈下次射擊時間
                     this.firetime=30;
                 }
@@ -325,6 +325,17 @@
 
                 }
             });
+            phaser.physics.arcade.overlap(ETbullets,bullets , function (ETbullet,bullet){
+            
+                bullet.kill();
+                ETbullet.kill()
+            });
+            if (phaser.input.keyboard.isDown(Phaser.Keyboard.Q) && this.cd <= 0)
+                this.shot = 10;
+            if(this.shot > 0)
+                this.fire();
+            this.shot -=1;
+            this.cd -=1;
             tacr-=1;
         },
         bulletHits: function (bullet) {
