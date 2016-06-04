@@ -2,11 +2,38 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Phaser demo</title>
+	<title>Tank</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.6/semantic.min.css">
 </head>
 <body style="margin:0;">
+<div class="ui page dimmer" id="predimmer">
+    <div class="ui content" id="alert">
+    <div class="ui center">
+        <img src="http://i.imgur.com/SSSWhXx.png" alt="" style="max-width: 40%; display:block; margin:auto;">
+      <h2 class="ui inverted center aligned icon header">
+        Welcome!
+      </h2>
+      <div class="ui horizontal divider"></div>
+      <div class="ui stackable grid">
+        <div class="centered nine wide column">
+          <div class="ui green huge message">  
+          <p>使用 W,A,S,D 移動, 滑鼠左鍵來發射</p>
+          <p>目標為殲滅敵軍，花費時間最短者勝利</p>
+          <p>若花費時間相同，則以結束時血量為判斷標準</p>
+          <!-- <p>～ 請勿使用大絕 ～</p> -->
+          </div>
+        </div>
+      </div>
+      <div class="ui horizontal divider"></div>
+      <div id="yes" class="ui green inverted right labeled icon button active">
+          <i class="right arrow icon"></i>Go!
+      </div>
+    </div>
+    </div>
+  </div>
 	<div id="game"></div>
 	<script src="//code.jquery.com/jquery-1.12.0.min.js" charset="utf-8"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.6/semantic.min.js"></script>
 	<script src="//cdnjs.cloudflare.com/ajax/libs/phaser/2.4.6/phaser.min.js" charset="utf-8"></script>
 	<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js" charset="utf-8"></script>
 	<script src="lib/phaser_nchuit_helper.js" charset="utf-8"></script>
@@ -124,8 +151,8 @@
 				this.bullets =[];
 				this.firetime = 0;
 				this.enemies = [];
-				this.enemiesTotal = 2;
-				this.enemiesAlive = 2;
+				this.enemiesTotal = 20;
+				this.enemiesAlive = 20;
 				this.enemiesKilled = 0;
 				// this.currentET = 0;
 				for (var i = 0; i < this.enemiesTotal; i++)
@@ -375,9 +402,12 @@
 
 			}
 		};
-
 		jQuery(document).ready(function($) {
-			game.new($(document).width(), $(document).height(), 'game');
+			$('#predimmer').modal('setting', 'closable', false).modal('show');
+	 		$('#yes').click(function() {
+	   			$('#predimmer').modal('hide');
+	   			game.new($(document).width(), $(document).height(), 'game');
+	   		});
 		});
 
 	</script>
