@@ -5,12 +5,12 @@
   <title>Phaser demo</title>
 </head>
 <body style="margin:0;">
-  <div id="game"></div>
-  <script src="//code.jquery.com/jquery-1.12.0.min.js" charset="utf-8"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/phaser/2.4.6/phaser.min.js" charset="utf-8"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js" charset="utf-8"></script>
-  <script src="lib/phaser_nchuit_helper.js" charset="utf-8"></script>
-  <script type="text/javascript">
+    <script src="//code.jquery.com/jquery-1.12.0.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.6/semantic.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/phaser/2.4.6/phaser.min.js" charset="utf-8"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js" charset="utf-8"></script>
+    <script src="lib/phaser_nchuit_helper.js" charset="utf-8"></script>
+    <script type="text/javascript">
     var game = {
               
         new: function(witdh, height, canvas_selector){
@@ -22,7 +22,7 @@
 
             phaser.load.image('logo','http://i.imgur.com/SSSWhXx.png');
             phaser.load.image('bullet', 'img/bullet.png');
-            phaser.load.tilemap('map', 'tilemap/map.json', null, Phaser.Tilemap.TILED_JSON);
+            phaser.load.tilemap('map', 'tilemap/map2.json', null, Phaser.Tilemap.TILED_JSON);
             phaser.load.image('kenney', 'tilemap/kenney.png');
             phaser.load.atlas('tank', 'img/tanks.png', 'assets/tanks.json');
             phaser.load.image('earth', 'img/scorched_earth.png');
@@ -147,6 +147,10 @@
             this.actb=true;
             this.cdeb=false;
             this.cdqb=false;
+            this.playTime = 0;
+            var intervalID = setInterval(function(arg1) {
+                    this.playTime ++
+                }.bind(this), 1000);
         },
         update: function(){
             // tank angle change rate 
@@ -159,6 +163,7 @@
             var turret = this.turret;
             var land = this.land;
             var self = this;
+            var intervalID = this.intervalID;
             // tank control and inertia
             if(this.actb)
             {
@@ -319,6 +324,7 @@
                         explosionAnimation = explosions.getFirstExists(false);
                         explosionAnimation.reset(tank.x, tank.y);
                         explosionAnimation.play('kaboom', 30, false, true);
+                        self.createText();
                     }
                 });
             }
@@ -333,7 +339,7 @@
                 this.shot = 10;
                 this.cd = 195;
             }
-            if (phaser.input.keyboard.isDown(Phaser.Keyboard.E) && this.cde<=50)
+            if (phaser.input.keyboard.isDown(Phaser.Keyboard.E) && this.cde<=50 && tank.alive)
             {
                 tank.currentSpeed = 1000;
                 this.cde = 160;
@@ -346,13 +352,13 @@
                 this.actb = true;
                 this.cdeb = false;
             }
-            if (phaser.input.keyboard.isDown(Phaser.Keyboard.Q) && this.cdq<=0 )
+            if (phaser.input.keyboard.isDown(Phaser.Keyboard.Q) && this.cdq<=0 && tank.alive)
             {
                 this.cdq = 1500;
                 this.actb = false;
                 this.cdqb = true;
             }
-            else if(this.cdq>=1380 && !this.actb && this.cdqb)
+            else if(this.cdq>=1380 && !this.actb && this.cdqb && tank.alive)
             {
                 tank.angle += 3 ;
                 tank.currentSpeed = 0;
@@ -379,9 +385,27 @@
 
             var phaser = this.phaser
             var da = this.da;
+            var q = this.cdq;
+            if(q>0)
+                q/=10;
+            else
+                q=0;
             phaser.debug.text('Health: ' + this.tank.health + ' / ' + this.tank.healthTotal, 32, 32);
             phaser.debug.text('擊殺數 :' + da , 540, 32);
+            phaser.debug.text('Q :' + q , 32, 215);
         },
+        createText: function () {
+                //  遊戲結果訊息
+                var text="Game Over (;´༎ຶД༎ຶ`)\n" + "Time:" + this.playTime + 'sec';
+                window.clearInterval(self.intervalID);
+                var color;  
+                    color = '#17EAD9';
+                var note = this.phaser.add.text(this.phaser.width/2-300, this.phaser.height/2 - 50, text, { fontSize: '72px', fill: color });
+                note.fixedToCamera = true;
+                note.font = 'Arial';
+                note.align = 'center';
+                note.setShadow(2, 2, '#3E3E3E', 1);
+            },
         createenemy: function (amout) {
             var phaser = this.phaser;
             for (var i = 0; i < amout; i++)
