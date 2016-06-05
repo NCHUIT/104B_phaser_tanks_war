@@ -125,7 +125,266 @@
             this.enemiesTotal = 20;
             this.enemiesAlive = 20;
             // this.currentET = 0;
-            for (var i = 0; i < this.enemiesTotal; i++)
+            this.createenemy(20);
+            // explosion
+             this.explosions = game.add.group();
+            for (var i = 0; i < 10; i++)
+            {
+                this.explosionAnimation = this.explosions.create(0, 0, 'kaboom', [0], false);
+                this.explosionAnimation.anchor.setTo(0.5, 0.5);
+                this.explosionAnimation.animations.add('kaboom');
+            }
+            // enemy tank bullet
+            this.ETbullets = [];
+            this.tank.health = 10;
+            this.tank.healthTotal = 10;
+            this.tank.alive = true;
+            this.shot =0;
+            this.cd =0;
+            this.da=0;
+            this.cdq=0;
+            this.cde=0;
+            this.actb=true;
+            this.cdeb=false;
+            this.cdqb=false;
+        },
+        update: function(){
+            // tank angle change rate 
+            var tacr=0;
+            var phaser = this.phaser;
+            var cursors = this.cursors;
+            var tank = this.tank;
+            var shadow = this.shadow;
+            var tank_group = this.tank_group;
+            var turret = this.turret;
+            var land = this.land;
+            var self = this;
+            // tank control and inertia
+            if(this.actb)
+            {
+                if (phaser.input.keyboard.isDown(Phaser.Keyboard.A))
+                  tank.angle -= 4;
+                if (phaser.input.keyboard.isDown(Phaser.Keyboard.D))
+                  tank.angle += 4;
+                if (phaser.input.keyboard.isDown(Phaser.Keyboard.W))
+                  tank.currentSpeed = 300;
+                else
+                  if (tank.currentSpeed > 0)
+                      tank.currentSpeed -= 4;
+                if (phaser.input.keyboard.isDown(Phaser.Keyboard.S))
+                   tank.currentSpeed = -200
+                else
+                  if (tank.currentSpeed < 0)
+                     tank.currentSpeed += 4 ;
+            }
+            // convert to x,y velocity
+            phaser.physics.arcade.velocityFromRotation(tank.rotation, tank.currentSpeed, tank.body.velocity);
+
+            // collide with the map
+            phaser.physics.arcade.collide(tank, this.layer);
+
+            // union the tank's component
+            tank_group.setAll('x',tank.x);
+            tank_group.setAll('y',tank.y);
+            tank_group.setAll('angle',tank.angle);
+
+            // make turret point the mouse
+            if(this.actb)
+                turret.rotation = phaser.physics.arcade.angleToPointer(turret);
+            else
+                turret.angle = tank.angle;
+            // make land look like scrolling
+            land.tilePosition.x = -phaser.camera.x;
+            land.tilePosition.y = -phaser.camera.y;
+                // a stupit stuff
+                if (game.input.activePointer.isDown && this.firetime<=0 && tank.alive)
+                {
+                    //  Boom!
+                    this.fire();
+                    //設置砲彈下次射擊時間
+                    this.firetime=25;
+                }
+            var bullets = this.bullets;
+            var enemies = this.enemies;
+            var explosionAnimation = this.explosionAnimation;
+            var explosions = this.explosions;
+            //慢慢減射擊時間
+            this.firetime-=1;
+            //判斷砲彈和牆壁有無碰撞
+            phaser.physics.arcade.collide(bullets, this.layer, this.bulletHits);
+            for(i = 0 ; i < this.enemiesTotal ; i++)
+            {
+                
+                game.physics.arcade.velocityFromRotation(enemies[i].tank.angle, 100, enemies[i].tank.body.velocity);
+                if(phaser.physics.arcade.collide(enemies[i].tank, this.tank) && !this.cdeb)
+                    enemies[i].health -= 1; 
+                else
+                    phaser.physics.arcade.collide(enemies[i].tank, this.tank);
+                var collided = phaser.physics.arcade.collide(enemies[i].tank, this.layer);
+                // collide with layer
+                if(collided && tacr<=0){
+                    enemies[i].tank.angle += 4;
+                    tacr=5;
+                }
+                // collide with world bounds
+                if (this.enemies[i].tank.x >= phaser.world.width-32 || this.enemies[i].tank.x <= 32 && tacr<=0){
+                    this.enemies[i].tank.angle += 4;
+                    tacr=15;
+                }
+                if (enemies[i].tank.y >= phaser.world.height-32 || enemies[i].tank.y <= 32 && tacr<=0){
+                    enemies[i].tank.angle += 4;
+                    tacr=15;
+                }
+                if(enemies[i].alive)
+                {
+                    phaser.physics.arcade.overlap(bullets, enemies[i].tank, function  (bullet , tank) {
+
+                        bullet.kill();
+                        //   i = this.currentET;
+                        enemies[i].health -=1;
+                        
+                        if (enemies[i].health <=0)
+                        {
+                            self.da += 1;
+                            // this.enemys-=1;
+                            enemies[i].alive = false;
+                            enemies[i].shadow.kill();
+                            enemies[i].tank.kill();
+                            enemies[i].turret.kill();
+                            explosionAnimation = explosions.getFirstExists(false);
+                            explosionAnimation.reset(enemies[i].tank.x, enemies[i].tank.y);
+                            explosionAnimation.play('kaboom', 30, false, true);
+                        }
+                    });
+                    for(j = i+1;j < this.enemiesTotal ; j++)
+                    {
+                        
+                        if(this.enemies[j].alive)
+                        {
+                            if (phaser.physics.arcade.collide(this.enemies[i].tank,this.enemies[j].tank))
+                                {
+                                    this.enemies[i].tank.angle += 4;
+                                    tacr=10;
+                                }
+                        }
+                    }
+                }
+                else
+                {
+                    enemies[i].dt-=1;
+                    if(enemies[i].dt<=0)
+                    {
+                        var x = phaser.world.randomX;
+                        var y = phaser.world.randomY;
+                        enemies[i].shadow.reset(x,y);
+                        enemies[i].tank.reset(x,y);
+                        enemies[i].turret.reset(x,y);
+                        enemies[i].alive = true;
+                        enemies[i].health = 3;
+                    }
+                }
+                this.enemies[i].tank_group.setAll('x',this.enemies[i].tank.x);
+                this.enemies[i].tank_group.setAll('y',this.enemies[i].tank.y);
+                this.enemies[i].tank_group.setAll('angle',this.enemies[i].tank.angle);
+                this.enemies[i].turret.rotation = this.game.physics.arcade.angleBetween(this.enemies[i].tank, this.tank);
+                 if (phaser.physics.arcade.distanceBetween(enemies[i].tank, tank) < 300)
+                {
+                    if (phaser.time.now > enemies[i].nextFire && enemies[i].alive)
+                    {
+                        var ETbullet = phaser.add.sprite(enemies[i].turret.x, enemies[i].turret.y, 'bullet');
+                        var ETbullets = this.ETbullets;
+                        ETbullet.anchor.setTo(0.5, 0.5);
+                        ETbullet.currentSpeed =300;
+                        ETbullet.rotation = enemies[i].turret.rotation;
+                       // bullet.scale.setTo(0.25,0.25);
+                        phaser.physics.enable(ETbullet);
+                        phaser.physics.arcade.velocityFromRotation(ETbullet.rotation, ETbullet.currentSpeed, ETbullet.body.velocity);
+                        ETbullet.outOfBoundsKill = true;
+                        ETbullets.push(ETbullet);
+                        enemies[i].nextFire = phaser.time.now + this.fireRate;
+                    }
+                }
+            }
+            var ETbullets = this.ETbullets;
+            phaser.physics.arcade.collide(ETbullets, this.layer, this.bulletHits);
+            if(this.actb) {
+                phaser.physics.arcade.overlap(ETbullets, tank, function  (ETbullet , tank) {
+                    tank.health -= 1;
+                    ETbullet.kill();
+                    if(tank.health <=0)
+                    {
+                        shadow.kill();
+                        tank.kill();
+                        turret.kill();
+                        explosionAnimation = explosions.getFirstExists(false);
+                        explosionAnimation.reset(tank.x, tank.y);
+                        explosionAnimation.play('kaboom', 30, false, true);
+                    }
+                });
+            }
+
+            phaser.physics.arcade.overlap(ETbullets,bullets , function (ETbullet,bullet){
+            
+                bullet.kill();
+                ETbullet.kill()
+            });
+            if (phaser.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && this.cd <= 0)
+            {
+                this.shot = 10;
+                this.cd = 195;
+            }
+            if (phaser.input.keyboard.isDown(Phaser.Keyboard.E) && this.cde<=50)
+            {
+                tank.currentSpeed = 1000;
+                this.cde = 160;
+                this.actb = false;
+                this.cdeb = true;
+            }
+            else if (this.cde<=145 && !this.actb && this.cdeb )
+            {
+                tank.currentSpeed = 400;
+                this.actb = true;
+                this.cdeb = false;
+            }
+            if (phaser.input.keyboard.isDown(Phaser.Keyboard.Q) && this.cdq<=0 )
+            {
+                this.cdq = 1500;
+                this.actb = false;
+                this.cdqb = true;
+            }
+            else if(this.cdq>=1380 && !this.actb && this.cdqb)
+            {
+                tank.angle += 3 ;
+                tank.currentSpeed = 0;
+                this.fire();
+            }
+            else if (this.cdq<=1380 && !this.actb && this.cdqb)
+            {
+                tank.currentSpeed = 0;
+                this.actb = true;
+                this.cdqb = false;
+            }
+            if(this.shot > 0)
+                this.fire();
+            this.shot -=1;
+            this.cd -=1;
+            tacr-=1;
+            this.cde -=1;
+            this.cdq -= 1;
+        },
+        bulletHits: function (bullet) {
+            bullet.kill();
+        },
+        render: function () {
+
+            var phaser = this.phaser
+            var da = this.da;
+            phaser.debug.text('Health: ' + this.tank.health + ' / ' + this.tank.healthTotal, 32, 32);
+            phaser.debug.text('擊殺數 :' + da , 540, 32);
+        },
+        createenemy: function (amout) {
+            var phaser = this.phaser;
+            for (var i = 0; i < amout; i++)
             {
 
                 var x = phaser.world.randomX;
@@ -156,199 +415,10 @@
                     shadow:shadow,
                     nextFire: 0,
                     health : 3,
-                    alive : true
+                    alive : true,
+                    dt : 3
                 })
             }
-            // explosion
-             this.explosions = game.add.group();
-            for (var i = 0; i < 10; i++)
-            {
-                this.explosionAnimation = this.explosions.create(0, 0, 'kaboom', [0], false);
-                this.explosionAnimation.anchor.setTo(0.5, 0.5);
-                this.explosionAnimation.animations.add('kaboom');
-            }
-            // enemy tank bullet
-            this.ETbullets = [];
-            this.tank.health = 10;
-            this.tank.healthTotal = 10;
-            this.tank.alive = true;
-            this.shot =0;
-            this.cd =0;
-        },
-        update: function(){
-            // tank angle change rate 
-            var tacr=0;
-            var phaser = this.phaser;
-            var cursors = this.cursors;
-            var tank = this.tank;
-            var shadow = this.shadow;
-            var tank_group = this.tank_group;
-            var turret = this.turret;
-            var land = this.land;
-
-            // tank control and inertia
-            if (phaser.input.keyboard.isDown(Phaser.Keyboard.A))
-              tank.angle -= 4;
-            if (phaser.input.keyboard.isDown(Phaser.Keyboard.D))
-              tank.angle += 4;
-            if (phaser.input.keyboard.isDown(Phaser.Keyboard.W))
-              tank.currentSpeed = 300;
-            else
-              if (tank.currentSpeed > 0)
-                  tank.currentSpeed -= 4;
-            if (phaser.input.keyboard.isDown(Phaser.Keyboard.S))
-               tank.currentSpeed = -200
-            else
-              if (tank.currentSpeed < 0)
-                 tank.currentSpeed += 4 ;
-
-            // convert to x,y velocity
-            phaser.physics.arcade.velocityFromRotation(tank.rotation, tank.currentSpeed, tank.body.velocity);
-
-            // collide with the map
-            phaser.physics.arcade.collide(tank, this.layer);
-
-            // union the tank's component
-            tank_group.setAll('x',tank.x);
-            tank_group.setAll('y',tank.y);
-            tank_group.setAll('angle',tank.angle);
-
-            // make turret point the mouse
-             turret.rotation = phaser.physics.arcade.angleToPointer(turret);
-
-            // make land look like scrolling
-            land.tilePosition.x = -phaser.camera.x;
-            land.tilePosition.y = -phaser.camera.y;
-                // a stupit stuff
-                if (game.input.activePointer.isDown && this.firetime<=0 && tank.alive)
-                {
-                    //  Boom!
-                    this.fire();
-                    //設置砲彈下次射擊時間
-                    this.firetime=30;
-                }
-            var bullets = this.bullets;
-            var enemies = this.enemies;
-            var explosionAnimation = this.explosionAnimation;
-            var explosions = this.explosions;
-            //慢慢減射擊時間
-            this.firetime-=1;
-            //判斷砲彈和牆壁有無碰撞
-            phaser.physics.arcade.collide(bullets, this.layer, this.bulletHits);
-            for(i = 0 ; i < this.enemiesTotal ; i++)
-            {
-                
-                game.physics.arcade.velocityFromRotation(enemies[i].tank.angle, 100, enemies[i].tank.body.velocity);
-                phaser.physics.arcade.collide(enemies[i].tank, this.tank);
-                var collided = phaser.physics.arcade.collide(enemies[i].tank, this.layer);
-                // collide with layer
-                if(collided && tacr<=0){
-                    enemies[i].tank.angle += 4;
-                    tacr=5;
-                }
-                // collide with world bounds
-                if (this.enemies[i].tank.x >= phaser.world.width-32 || this.enemies[i].tank.x <= 32 && tacr<=0){
-                    this.enemies[i].tank.angle += 4;
-                    tacr=15;
-                }
-                if (enemies[i].tank.y >= phaser.world.height-32 || enemies[i].tank.y <= 32 && tacr<=0){
-                    enemies[i].tank.angle += 4;
-                    tacr=15;
-                }
-                if(enemies[i].alive)
-                {
-                    phaser.physics.arcade.overlap(bullets, enemies[i].tank, function  (bullet , tank) {
-
-                        bullet.kill();
-                        //   i = this.currentET;
-                        enemies[i].health -=1;
-
-                        if (enemies[i].health <=0)
-                        {
-                            enemies[i].alive = false;
-                            enemies[i].shadow.kill();
-                            enemies[i].tank.kill();
-                            enemies[i].turret.kill();
-                            explosionAnimation = explosions.getFirstExists(false);
-                            explosionAnimation.reset(enemies[i].tank.x, enemies[i].tank.y);
-                            explosionAnimation.play('kaboom', 30, false, true);
-                        }
-                    });
-                    for(j = i+1;j < this.enemiesTotal ; j++)
-                    {
-                        
-                        if(this.enemies[j].alive)
-                        {
-                            if (phaser.physics.arcade.collide(this.enemies[i].tank,this.enemies[j].tank))
-                                {
-                                    this.enemies[i].tank.angle += 4;
-                                    tacr=10;
-                                }
-                        }
-                    }
-                }
-                this.enemies[i].tank_group.setAll('x',this.enemies[i].tank.x);
-                this.enemies[i].tank_group.setAll('y',this.enemies[i].tank.y);
-                this.enemies[i].tank_group.setAll('angle',this.enemies[i].tank.angle);
-                this.enemies[i].turret.rotation = this.game.physics.arcade.angleBetween(this.enemies[i].tank, this.tank);
-                 if (phaser.physics.arcade.distanceBetween(enemies[i].tank, tank) < 300)
-                {
-                    if (phaser.time.now > enemies[i].nextFire && enemies[i].alive)
-                    {
-                        var ETbullet = phaser.add.sprite(enemies[i].turret.x, enemies[i].turret.y, 'bullet');
-                        var ETbullets = this.ETbullets;
-                        ETbullet.anchor.setTo(0.5, 0.5);
-                        ETbullet.currentSpeed =300;
-                        ETbullet.rotation = enemies[i].turret.rotation;
-                       // bullet.scale.setTo(0.25,0.25);
-                        phaser.physics.enable(ETbullet);
-                        phaser.physics.arcade.velocityFromRotation(ETbullet.rotation, ETbullet.currentSpeed, ETbullet.body.velocity);
-                        ETbullet.outOfBoundsKill = true;
-                        ETbullets.push(ETbullet);
-                        enemies[i].nextFire = phaser.time.now + this.fireRate;
-                    }
-                }
-            }
-            var ETbullets = this.ETbullets;
-            phaser.physics.arcade.collide(ETbullets, this.layer, this.bulletHits);
-            phaser.physics.arcade.overlap(ETbullets, tank, function  (ETbullet , tank) {
-                tank.health -= 1;
-                ETbullet.kill();
-                if(tank.health <=0)
-                {
-                    shadow.kill();
-                    tank.kill();
-                    turret.kill();
-                    explosionAnimation = explosions.getFirstExists(false);
-                    explosionAnimation.reset(tank.x, tank.y);
-                    explosionAnimation.play('kaboom', 30, false, true);
-
-                }
-            });
-            phaser.physics.arcade.overlap(ETbullets,bullets , function (ETbullet,bullet){
-            
-                bullet.kill();
-                ETbullet.kill()
-            });
-            if (phaser.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && this.cd <= 0)
-            {
-                this.shot = 10;
-                this.cd = 150;
-            }
-            if(this.shot > 0)
-                this.fire();
-            this.shot -=1;
-            this.cd -=1;
-            tacr-=1;
-        },
-        bulletHits: function (bullet) {
-            bullet.kill();
-        },
-        render: function () {
-
-            var phaser = this.phaser
-
-            phaser.debug.text('Health: ' + this.tank.health + ' / ' + this.tank.healthTotal, 32, 32);
 
         }
      };
