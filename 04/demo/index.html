@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Tank</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.6/semantic.min.css">
+</head>
+<body style="margin:0;">
+<div class="ui page dimmer" id="predimmer">
+    <div class="ui content" id="alert">
+    <div class="ui center">
+        <img src="http://i.imgur.com/SSSWhXx.png" alt="" style="max-width: 40%; display:block; margin:auto;">
+      <h2 class="ui inverted center aligned icon header">
+        Welcome!
+      </h2>
+      <div class="ui horizontal divider"></div>
+      <div class="ui stackable grid">
+        <div class="centered nine wide column">
+          <div class="ui green huge message">  
+          <p>使用 W,A,S,D 移動, 滑鼠左鍵來發射</p>
+          <p>目標為殲滅敵軍，花費時間最短者勝利</p>
+          <p>若花費時間相同，則以結束時血量為判斷標準</p>
+          <!-- <p>～ 請勿使用大絕 ～</p> -->
+          </div>
+        </div>
+      </div>
+      <div class="ui horizontal divider"></div>
+      <div id="yes" class="ui green inverted right labeled icon button active">
+          <i class="right arrow icon"></i>Go!
+      </div>
+    </div>
+    </div>
+  </div>
+	<div id="game"></div>
+	<script src="//code.jquery.com/jquery-1.12.0.min.js" charset="utf-8"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.6/semantic.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/phaser/2.4.6/phaser.min.js" charset="utf-8"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js" charset="utf-8"></script>
+	<script src="lib/phaser_nchuit_helper.js" charset="utf-8"></script>
+	<script type="text/javascript">
+		var game = {
+			
+			new: function(witdh, height, canvas_selector){
+				this.phaser = new Phaser.Game(witdh, height, Phaser.AUTO, canvas_selector, this)
+			},
+			preload: function(){
+				var phaser = this.phaser;
+				phaser.load.crossOrigin = true;
+
+				phaser.load.image('logo','http://i.imgur.com/SSSWhXx.png');
+				phaser.load.image('bullet', 'img/bullet.png');
+				phaser.load.tilemap('map', 'tilemap/map2.json', null, Phaser.Tilemap.TILED_JSON);
+				phaser.load.image('kenney', 'tilemap/kenney.png');
+				phaser.load.atlas('tank', 'img/tanks.png', 'assets/tanks.json');
+				phaser.load.image('earth', 'img/scorched_earth.png');
+				phaser.load.spritesheet('kaboom', 'img/explosion.png', 64, 64, 23);
+				phaser.load.atlas('enemy', 'img/enemy-tanks.png', 'assets/tanks.json')
+			},
+			removeLogo: function () {
+				game.input.onUp.remove(this.removeLogo, this);
+				this.logo.kill();
+			},
+			fire:  function  () {
+				var phaser = this.phaser;
+				var turret = this.turret;
+				var bullet = phaser.add.sprite(turret.x, turret.y, 'bullet');
+				bullet.anchor.setTo(0.5, 0.5);
+				bullet.currentSpeed =500;
+				bullet.rotation = this.turret.rotation;
+				// bullet.scale.setTo(0.25,0.25);
+				phaser.physics.enable(bullet);
+				phaser.physics.arcade.velocityFromRotation(bullet.rotation, bullet.currentSpeed, bullet.body.velocity);
+				bullet.outOfBoundsKill = true;
+				this.bullets.push(bullet);
+			}, 
+	   		create: function(){
+				var phaser = this.phaser;
+				var intervalID = setInterval(function(arg1) {
+					this.playTime ++
+				}.bind(this), 1000);
+				this.gameOver = false;
+
+				// The Logo
+				var logo = phaser.add.sprite(0, 0, 'logo');
+
+				// Prepare how the world works
+				phaser.physics.startSystem(Phaser.Physics.ARCADE);
+
+				// The land
+				var land = phaser.add.tileSprite(0, 0, phaser.scale.width, phaser.scale.height, 'earth');
+				land.fixedToCamera = true;
+
+				// Our tank body
+				var tank = this.add.sprite(50, 50, 'tank', 'tank');
+				tank.anchor.setTo(0.5, 0.5);
+				phaser.physics.enable(tank);
+				tank.body.collideWorldBounds = true;
+				phaser.camera.follow(tank);
+
+				// The turret on our tank
+				var turret = phaser.add.sprite(0, 0, 'tank', 'turret')
+				turret.anchor.setTo(0.3, 0.5);
+
+				//  A shadow below our tank
+				var shadow = this.add.sprite(0, 0, 'tank', 'shadow');
+				shadow.anchor.setTo(0.5, 0.5);
+
+				// Our tank group
+				var tank_group = phaser.add.group();
+				tank_group.add(tank);
+				tank_group.add(turret)
+				tank_group.add(shadow)
+
+				// fix z layer of our tank
+				tank.bringToTop();
+				turret.bringToTop();
+
+				// add the map
+				var map = phaser.add.tilemap('map');
+				map.addTilesetImage('kenney');
+
+				// set collision properties
+				map.setCollision(PhaserHelper.getCollisionIndexes(phaser, 'map'));
+
+				// make the collision layer from the map
+				var layer = map.createLayer('layer1');
+
+				// set the world size according to the map
+				layer.resizeWorld();
+				logo.x = phaser.scale.width / 2;
+				logo.y = phaser.scale.height / 2;
+				logo.anchor.setTo(0.5, 0.5);
+				logo.fixedToCamera = true;
+				logo.alpha = 0.75;
+				logo.bringToTop();
+
+				// expose tank component to the game instance
+				this.land = land;
+				this.tank_group = tank_group;
+				this.tank = tank;
+				this.turret = turret;
+				this.layer = layer;
+				this.logo = logo;
+				this.shadow = shadow;
+				// enable keyboard control
+				this.cursors = phaser.input.keyboard.createCursorKeys();
+
+				// the init speed of tank
+				this.tank.currentSpeed = 0;
+				game.input.onUp.add(this.removeLogo, this);
+				this.bullets =[];
+				this.firetime = 0;
+				this.enemies = [];
+				this.enemiesTotal = 20;
+				this.enemiesAlive = 20;
+				this.enemiesKilled = 0;
+				// this.currentET = 0;
+				for (var i = 0; i < this.enemiesTotal; i++)
+				{
+
+					var x = phaser.world.randomX;
+					var y = phaser.world.randomY;
+					var shadow = this.add.sprite(x, y, 'enemy', 'shadow');
+					var tank = this.add.sprite(x, y, 'enemy', 'tank');
+					var turret = this.add.sprite(x, y, 'enemy','turret');
+					var tank_group = phaser.add.group();
+					tank_group.add(tank);
+					tank_group.add(turret);
+					tank_group.add(shadow);
+					tank.bringToTop();
+					turret.bringToTop();
+					shadow.anchor.setTo(0.5);
+					tank.anchor.setTo(0.5);
+					turret.anchor.setTo(0.3, 0.5);
+					game.physics.enable(tank, Phaser.Physics.ARCADE);
+					tank.body.collideWorldBounds = true ;
+					tank.body.immovable = false ;
+					tank.body.bounce.setTo(1,1);
+					tank.angle = phaser.rnd.angle();
+					this.fireRate = 1000;
+					this.enemies.push({
+						tank: tank,
+						turret: turret,
+						tank_group: tank_group,
+						hasbullet : false,
+						shadow:shadow,
+						nextFire: 0,
+						health : 3,
+						alive : true
+					})
+				}
+				// explosion
+				this.explosions = game.add.group();
+				for (var i = 0; i < 10; i++)
+				{
+					this.explosionAnimation = this.explosions.create(0, 0, 'kaboom', [0], false);
+					this.explosionAnimation.anchor.setTo(0.5, 0.5);
+					this.explosionAnimation.animations.add('kaboom');
+				}
+				// enemy tank bullet
+				this.ETbullets = [];
+				this.tank.health = 10;
+				this.tank.healthTotal = 10;
+				this.tank.alive = true;
+				this.shot =0;
+				this.cd =0;
+				this.playTime = 0;
+			},
+			update: function(){
+				// tank angle change rate 
+				var tacr=0;
+				var phaser = this.phaser;
+				var cursors = this.cursors;
+				var tank = this.tank;
+				var shadow = this.shadow;
+				var tank_group = this.tank_group;
+				var turret = this.turret;
+				var land = this.land;
+				var intervalID = this.intervalID;
+
+				// tank control and inertia
+				if (phaser.input.keyboard.isDown(Phaser.Keyboard.A))
+					tank.angle -= 4;
+				if (phaser.input.keyboard.isDown(Phaser.Keyboard.D))
+					tank.angle += 4;
+				if (phaser.input.keyboard.isDown(Phaser.Keyboard.W))
+					tank.currentSpeed = 300;
+				else
+					if (tank.currentSpeed > 0)
+						tank.currentSpeed -= 4;
+					if (phaser.input.keyboard.isDown(Phaser.Keyboard.S))
+						tank.currentSpeed = -200
+					else
+						if (tank.currentSpeed < 0)
+							tank.currentSpeed += 4 ;
+
+				// convert to x,y velocity
+				phaser.physics.arcade.velocityFromRotation(tank.rotation, tank.currentSpeed, tank.body.velocity);
+
+				// collide with the map
+				phaser.physics.arcade.collide(tank, this.layer);
+
+				// union the tank's component
+				tank_group.setAll('x',tank.x);
+				tank_group.setAll('y',tank.y);
+				tank_group.setAll('angle',tank.angle);
+
+				// make turret point the mouse
+				turret.rotation = phaser.physics.arcade.angleToPointer(turret);
+
+				// make land look like scrolling
+				land.tilePosition.x = -phaser.camera.x;
+				land.tilePosition.y = -phaser.camera.y;
+				// a stupit stuff
+				if (game.input.activePointer.isDown && this.firetime<=0 && tank.alive)
+				{
+					//  Boom!
+					this.fire();
+					//設置砲彈下次射擊時間
+					this.firetime=15;
+				}
+				var bullets = this.bullets;
+				var enemies = this.enemies;
+				var explosionAnimation = this.explosionAnimation;
+				var explosions = this.explosions;
+				//慢慢減射擊時間
+				this.firetime-=1;
+				//判斷砲彈和牆壁有無碰撞
+				phaser.physics.arcade.collide(bullets, this.layer, this.bulletHits);
+				for(i = 0 ; i < this.enemiesTotal ; i++)
+				{
+					game.physics.arcade.velocityFromRotation(enemies[i].tank.angle, 100, enemies[i].tank.body.velocity);
+					phaser.physics.arcade.collide(enemies[i].tank, this.tank);
+					var collided = phaser.physics.arcade.collide(enemies[i].tank, this.layer);
+					// collide with layer
+					if(collided && tacr<=0){
+						enemies[i].tank.angle += 4;
+						tacr=5;
+					}
+					// collide with world bounds
+					if (this.enemies[i].tank.x >= phaser.world.width-32 || this.enemies[i].tank.x <= 32 && tacr<=0){
+						this.enemies[i].tank.angle += 4;
+						tacr=15;
+					}
+					if (enemies[i].tank.y >= phaser.world.height-32 || enemies[i].tank.y <= 32 && tacr<=0){
+						enemies[i].tank.angle += 4;
+						tacr=15;
+					}
+					if(enemies[i].alive)
+					{
+						phaser.physics.arcade.overlap(bullets, enemies[i].tank, function  (bullet , tank) {
+
+							bullet.kill();
+							//   i = this.currentET;
+							enemies[i].health -=1;
+
+							if (enemies[i].health <=0)
+							{
+								enemies[i].alive = false;
+								enemies[i].shadow.kill();
+								enemies[i].tank.kill();
+								enemies[i].turret.kill();
+								explosionAnimation = explosions.getFirstExists(false);
+								explosionAnimation.reset(enemies[i].tank.x, enemies[i].tank.y);
+								explosionAnimation.play('kaboom', 30, false, true);
+								this.enemiesKilled += 1;
+								this.enemiesAlive -= 1;
+							}
+						}.bind(this));
+						for(j = i+1; j < this.enemiesTotal; j++)
+						{
+							
+							if(this.enemies[j].alive)
+							{
+								if (phaser.physics.arcade.collide(this.enemies[i].tank,this.enemies[j].tank))
+								{
+									this.enemies[i].tank.angle += 4;
+									tacr=10;
+								}
+							}
+						}
+					}
+					this.enemies[i].tank_group.setAll('x',this.enemies[i].tank.x);
+					this.enemies[i].tank_group.setAll('y',this.enemies[i].tank.y);
+					this.enemies[i].tank_group.setAll('angle',this.enemies[i].tank.angle);
+					this.enemies[i].turret.rotation = this.game.physics.arcade.angleBetween(this.enemies[i].tank, this.tank);
+					if (phaser.physics.arcade.distanceBetween(enemies[i].tank, tank) < 300)
+					{
+						if (phaser.time.now > enemies[i].nextFire && enemies[i].alive)
+						{
+							var ETbullet = phaser.add.sprite(enemies[i].turret.x, enemies[i].turret.y, 'bullet');
+							var ETbullets = this.ETbullets;
+							ETbullet.anchor.setTo(0.5, 0.5);
+							ETbullet.currentSpeed =300;
+							ETbullet.rotation = enemies[i].turret.rotation;
+							// bullet.scale.setTo(0.25,0.25);
+							phaser.physics.enable(ETbullet);
+							phaser.physics.arcade.velocityFromRotation(ETbullet.rotation, ETbullet.currentSpeed, ETbullet.body.velocity);
+							ETbullet.outOfBoundsKill = true;
+							ETbullets.push(ETbullet);
+							enemies[i].nextFire = phaser.time.now + this.fireRate;
+					   }
+				   }
+				}
+				var ETbullets = this.ETbullets;
+				phaser.physics.arcade.collide(ETbullets, this.layer, this.bulletHits);
+				phaser.physics.arcade.overlap(ETbullets, tank, function  (ETbullet , tank) {
+					console.log("this: ", this);
+					tank.health -= 1;
+					ETbullet.kill();
+					if(tank.health <=0 && this.gameOver == false)
+					{
+						shadow.kill();
+						tank.kill();
+						turret.kill();
+						explosionAnimation = explosions.getFirstExists(false);
+						explosionAnimation.reset(tank.x, tank.y);
+						explosionAnimation.play('kaboom', 30, false, true);
+						this.createText("Game Over (;´༎ຶД༎ຶ`)\n" + "Time:" + this.playTime + 'sec','l');
+						window.clearInterval(intervalID);
+						this.gameOver = true;
+					}
+				}.bind(this));
+				phaser.physics.arcade.overlap(ETbullets,bullets , function (ETbullet,bullet){
+					bullet.kill();
+					ETbullet.kill();
+				});
+			   	if (this.enemiesAlive == 0 && this.gameOver == false){
+					this.createText("You Win (●´ω｀●)ゞ\n" + "Time:" + this.playTime + 'sec','w');
+			   		window.clearInterval(intervalID);
+			   		this.gameOver = true;
+			   	};
+				// if (phaser.input.keyboard.isDown(Phaser.Keyboard.Q) && this.cd <= 0)
+				//     this.shot = 10;
+				// if(this.shot > 0)
+				//     this.fire();
+				// this.shot -=1;
+				this.cd -=1;
+				tacr-=1;
+			},
+			createText: function (text, result) {
+				//  遊戲結果訊息
+				var color;
+				if(result == 'w')          //贏了
+					color = '#17EAD9';
+				else if(result == 'l')
+					color = '#EB2632';     //哭哭
+				var note = this.phaser.add.text(this.phaser.width/2-300, this.phaser.height/2 - 50, text, { fontSize: '72px', fill: color });
+				note.fixedToCamera = true;
+				note.font = 'Arial';
+				note.align = 'center';
+				note.setShadow(2, 2, '#3E3E3E', 1);
+			},
+			bulletHits: function (bullet) {
+				bullet.kill();
+			},
+			render: function () {
+				var phaser = this.phaser;
+				phaser.debug.text('Health: ' + this.tank.health + ' / ' + this.tank.healthTotal, 32, 32);
+				phaser.debug.text('Enemy ' + this.enemiesAlive , 32, 64);
+				phaser.debug.text('Kill: ' + this.enemiesKilled , 32, 96);
+
+			}
+		};
+		jQuery(document).ready(function($) {
+			$('#predimmer').modal('setting', 'closable', false).modal('show');
+	 		$('#yes').click(function() {
+	   			$('#predimmer').modal('hide');
+	   			game.new($(document).width(), $(document).height(), 'game');
+	   		});
+		});
+
+	</script>
+</body>
+</html>
